@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Body Tune | Stella</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Noto Sans JP', sans-serif; -webkit-tap-highlight-color: transparent; }
+        .tab-active { background-color: white; color: #e11d48; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .celebration-fade { animation: fadeInOut 3s forwards; }
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: scale(0.9); }
+            15% { opacity: 1; transform: scale(1); }
+            85% { opacity: 1; transform: scale(1); }
+            100% { opacity: 0; transform: scale(1.05); }
+        }
+        .menu-content { display: none; }
+        .menu-content.active { display: block; }
+        .accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; }
+        .accordion-content.open { max-height: 500px; }
+    </style>
+</head>
+<body class="bg-[#fafafa] min-h-screen pb-20">
+
+    <div id="celebration-overlay" class="fixed inset-0 z-50 hidden items-center justify-center pointer-events-none">
+        <div class="absolute inset-0 bg-white/60 backdrop-blur-sm"></div>
+        <div class="relative bg-white p-8 rounded-[32px] shadow-2xl flex flex-col items-center">
+            <div id="celebration-icon" class="mb-4"></div>
+            <h2 class="text-2xl font-bold text-zinc-800 mb-2">Great Job!</h2>
+            <p class="text-zinc-600 font-medium">マスター、お疲れ様でした！</p>
+        </div>
+    </div>
+
+    <header class="bg-white px-6 pt-12 pb-6 rounded-b-[40px] shadow-sm border-b border-zinc-100 sticky top-0 z-10">
+        <div class="max-w-md mx-auto">
+            <div class="flex justify-between items-end mb-6">
+                <div>
+                    <p class="text-rose-500 font-bold tracking-wider text-xs mb-1 uppercase">Daily Body Tune</p>
+                    <h1 class="text-3xl font-black text-zinc-800 tracking-tight">今日のワークアウト</h1>
+                </div>
+                <div class="bg-zinc-100 text-zinc-600 px-4 py-2 rounded-2xl font-bold text-xs flex items-center gap-2">
+                    <i data-lucide="calendar" class="w-4 h-4"></i>
+                    <span id="header-date"></span>
+                </div>
+            </div>
+
+            <div class="bg-gradient-to-br from-rose-50 to-orange-50 rounded-3xl p-5 relative overflow-hidden border border-rose-100">
+                <i data-lucide="quote" class="absolute -top-4 -right-4 text-rose-500/10 w-24 h-24 rotate-12"></i>
+                <div class="flex items-center gap-2 mb-2 relative z-10">
+                    <div class="bg-white p-1 rounded-full shadow-sm text-rose-500">
+                        <i data-lucide="info" class="w-3 h-3"></i>
+                    </div>
+                    <span class="font-bold text-rose-800 text-[10px] uppercase tracking-widest">Stella's Advice</span>
+                </div>
+                <p id="daily-tip" class="text-zinc-700 text-sm leading-relaxed relative z-10 font-medium"></p>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-md mx-auto px-6 py-8">
+        <div class="flex gap-4 mb-8 bg-zinc-100/80 p-1.5 rounded-[24px] backdrop-blur-sm">
+            <button onclick="switchTab('menu')" id="tab-menu" class="flex-1 py-3 rounded-[20px] font-bold text-sm transition-all tab-active">
+                今日のメニュー
+            </button>
+            <button onclick="switchTab('calendar')" id="tab-calendar" class="flex-1 py-3 rounded-[20px] font-bold text-sm transition-all text-zinc-500">
+                記録
+            </button>
+        </div>
+
+        <div id="view-menu" class="menu-content active space-y-10">
+            <section>
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="leaf" class="text-emerald-500 w-6 h-6"></i>
+                        <h2 class="text-xl font-black text-zinc-800">基本の5分</h2>
+                    </div>
+                    <span class="text-[10px] font-bold bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full uppercase tracking-tighter">RESET</span>
+                </div>
+                <div id="basic-list" class="space-y-3"></div>
+                <button onclick="completeWorkout('basic')" id="btn-basic" class="w-full mt-4 py-4 rounded-2xl font-bold flex items-center justify-center gap-2 shadow-lg transition-all active:scale-[0.98]">
+                    <i data-lucide="leaf" class="w-5 h-5"></i>
+                    <span>基本の5分を完了する</span>
+                </button>
+            </section>
+
+            <div class="w-full h-px bg-zinc-200 my-8"></div>
+
+            <section>
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="flame" class="text-rose-500 w-6 h-6"></i>
+                        <h2 class="text-xl font-black text-zinc-800">しっかり30分</h2>
+                    </div>
+                    <span class="text-[10px] font-bold bg-rose-100 text-rose-700 px-3 py-1 rounded-full uppercase tracking-tighter">BURN</span>
+                </div>
+                <div id="full-list" class="space-y-3"></div>
+                <button onclick="completeWorkout('full')" id="btn-full" class="w-full mt-4 py-4 rounded-2xl font-bold flex items-center justify-center gap-2 shadow-lg transition-all active:scale-[0.98]">
+                    <i data-lucide="flame" class="w-5 h-5"></i>
+                    <span>しっかり30分を完了する</span>
+                </button>
+            </section>
+        </div>
+
+        <div id="view-calendar" class="menu-content space-y-6">
+            <div class="text-center mb-2">
+                <h2 class="text-xl font-black text-zinc-800">継続の記録</h2>
+                <p class="text-xs text-zinc-500 mt-1 font-medium">マスター、着実に変わっていますよ</p>
+            </div>
+            <div class="bg-white rounded-[32px] p-5 shadow-sm border border-zinc-100">
+                <div class="flex justify-between items-center mb-6 px-2">
+                    <button onclick="changeMonth(-1)" class="p-2 hover:bg-zinc-100 rounded-full"><i data-lucide="chevron-left" class="w-5 h-5 text-zinc-400"></i></button>
+                    <h3 id="calendar-title" class="font-bold text-zinc-800">2026年 4月</h3>
+                    <button onclick="changeMonth(1)" class="p-2 hover:bg-zinc-100 rounded-full"><i data-lucide="chevron-right" class="w-5 h-5 text-zinc-400"></i></button>
+                </div>
+                <div id="calendar-grid" class="grid grid-cols-7 gap-2"></div>
+                <div class="flex justify-center gap-6 mt-8 pt-4 border-t border-zinc-50">
+                    <div class="flex items-center gap-2 text-[10px] font-bold text-zinc-500"><i data-lucide="leaf" class="w-4 h-4 text-emerald-500 fill-emerald-500"></i> 基本</div>
+                    <div class="flex items-center gap-2 text-[10px] font-bold text-zinc-500"><i data-lucide="flame" class="w-4 h-4 text-rose-500 fill-rose-500"></i> しっかり</div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // --- データ ---
+        const basicMenu = [
+            { title: "肋骨締め呼吸", time: "1分", desc: "仰向けで膝を立て、両手を肋骨に。細く長く吐き切りながら肋骨を下げます。", effect: "インナーマッスルの強化" },
+            { title: "キャット＆カウ", time: "1分", desc: "四つん這いで呼吸に合わせ背中を丸める・反らす。丸める時に息を吐き切ります。", effect: "反り腰防止・背骨の柔軟化" },
+            { title: "ヒップリフト", time: "2分", desc: "仰向けで膝を立て、お尻の力で骨盤を持ち上げます。腰を反らさないのがコツ。", effect: "ヒップアップ・骨盤矯正" }
+        ];
+
+        const fullMenu = [
+            { title: "デッドバグ", time: "5分", desc: "仰向けで手足を上げ、腰を床に押し付けたまま交互に手足を下ろします。", effect: "ウエストのくびれ作り" },
+            { title: "クラムシェル", time: "5分", desc: "横向きで膝を曲げ、かかとをつけたまま上の膝をゆっくり開閉します。", effect: "ボトムスが似合うコンパクトな尻" },
+            { title: "バードドッグ", time: "5分", desc: "四つん這いから対角の手足を平行に伸ばしキープ。お腹を薄く保ちます。", effect: "美しい後ろ姿・体幹強化" },
+            { title: "クールダウン", time: "5分", desc: "チャイルドポーズなどで使った筋肉をゆっくり伸ばし、深呼吸します。", effect: "疲労回復・リラックス" }
+        ];
+
+        const tips = [
+            "お腹の引き締めには、まず『肋骨を閉じる』ことが最優先です。肋骨が開いていると内臓が下がりやすくなり、ぽっこりお腹の原因に。",
+            "ボトムスがキツいのは肋骨の開きによる『反り腰』が影響。肋骨を締めて骨盤を整えれば、お尻は自然とコンパクトに。",
+            "肋骨が開いたままだと体幹の力が逃げてしまいます。まずは呼吸で肋骨の位置を整えることから始めましょう。",
+            "トップスがキツいのは脂肪ではなく『肋骨が開いてアンダーバストが広がっている』のが原因かもしれません。",
+            "息を最後まで吐き切り、肋骨が下がる感覚を掴んでください。これが『天然のコルセット』となり、ウエストに直結します。",
+            "筋トレは『キツさ』より『継続』。最初は1日5分、少し物足りないくらいで終わらせるのがコツです。",
+            "『ジムに行けなかった』と落ち込む必要なし。家で深呼吸1つでも立派なトレーニング。ゼロにしないことが体を変えます。",
+            "毎日のルーティンにセットにするのがおすすめ。『テレビを見ながら』など、生活の一部に組み込んでみましょう。",
+            "食事制限をしないからこそ、日々の小さな積み重ねが大切。体重より鏡で見た『姿勢』の変化を楽しんでください。",
+            "筋肉や姿勢の改善は、まずは2週間。気がついた時には、以前着られなかった服がすんなり着られるようになっていますよ。"
+        ];
+
+        let history = JSON.parse(localStorage.getItem('dailyBodyTune_history') || '{}');
+        let currentMonth = new Date();
+
+        // --- 初期化 ---
+        function init() {
+            const now = new Date();
+            document.getElementById('header-date').innerText = `${now.getMonth() + 1}月${now.getDate()}日`;
+            document.getElementById('daily-tip').innerText = tips[now.getDate() % tips.length];
+            
+            renderList('basic-list', basicMenu, 'emerald');
+            renderList('full-list', fullMenu, 'rose');
+            updateButtons();
+            renderCalendar();
+            lucide.createIcons();
+        }
+
+        // --- リスト表示 ---
+        function renderList(id, menu, color) {
+            const container = document.getElementById(id);
+            menu.forEach((item, index) => {
+                const div = document.createElement('div');
+                div.className = "bg-white rounded-2xl shadow-sm border border-zinc-100 overflow-hidden mb-3";
+                div.innerHTML = `
+                    <button onclick="toggleAccordion(this)" class="w-full flex items-center justify-between p-4 text-left">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-${color}-50 text-${color}-500 flex items-center justify-center font-black text-xs">${index + 1}</div>
+                            <div>
+                                <h4 class="font-bold text-zinc-800 text-sm">${item.title}</h4>
+                                <p class="text-[10px] text-zinc-400 font-bold">${item.time}</p>
+                            </div>
+                        </div>
+                        <i data-lucide="chevron-down" class="w-4 h-4 text-zinc-300"></i>
+                    </button>
+                    <div class="accordion-content px-4">
+                        <div class="pb-4 pt-1 space-y-3">
+                            <div class="text-xs text-zinc-600 leading-relaxed"><b class="text-zinc-800">やり方:</b> ${item.desc}</div>
+                            <div class="bg-${color}-50/50 p-2 rounded-lg flex items-start gap-2 text-${color}-600 text-[11px] font-medium">
+                                <i data-lucide="award" class="w-3 h-3 mt-0.5 shrink-0"></i>
+                                <span>${item.effect}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function toggleAccordion(btn) {
+            const content = btn.nextElementSibling;
+            const icon = btn.querySelector('[data-lucide="chevron-down"]');
+            content.classList.toggle('open');
+            icon.style.transform = content.classList.contains('open') ? 'rotate(180deg)' : 'rotate(0)';
+        }
+
+        // --- タブ切り替え ---
+        function switchTab(tab) {
+            document.querySelectorAll('.menu-content').forEach(v => v.classList.remove('active'));
+            document.getElementById(`view-${tab}`).classList.add('active');
+            document.getElementById('tab-menu').className = tab === 'menu' ? 'flex-1 py-3 rounded-[20px] font-bold text-sm tab-active' : 'flex-1 py-3 rounded-[20px] font-bold text-sm text-zinc-500';
+            document.getElementById('tab-calendar').className = tab === 'calendar' ? 'flex-1 py-3 rounded-[20px] font-bold text-sm tab-active' : 'flex-1 py-3 rounded-[20px] font-bold text-sm text-zinc-500';
+            if(tab === 'calendar') renderCalendar();
+        }
+
+        // --- 完了処理 ---
+        function completeWorkout(type) {
+            const todayStr = getTodayStr();
+            history[todayStr] = type;
+            localStorage.setItem('dailyBodyTune_history', JSON.stringify(history));
+            updateButtons();
+            showCelebration(type);
+        }
+
+        function getTodayStr() {
+            const d = new Date();
+            return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+        }
+
+        function updateButtons() {
+            const todayStr = getTodayStr();
+            const done = history[todayStr];
+            
+            const bBtn = document.getElementById('btn-basic');
+            const fBtn = document.getElementById('btn-full');
+
+            if (done === 'basic' || done === 'full') {
+                bBtn.className = "w-full mt-4 py-4 rounded-2xl font-bold flex items-center justify-center gap-2 bg-emerald-100 text-emerald-700 border border-emerald-200";
+                bBtn.innerHTML = '<i data-lucide="check-circle-2" class="w-5 h-5"></i> 基本を完了済み';
+            } else {
+                bBtn.className = "w-full mt-4 py-4 rounded-2xl font-bold flex items-center justify-center gap-2 bg-emerald-500 text-white shadow-emerald-200";
+                bBtn.innerHTML = '<i data-lucide="leaf" class="w-5 h-5"></i> 基本の5分を完了する';
+            }
+
+            if (done === 'full') {
+                fBtn.className = "w-full mt-4 py-4 rounded-2xl font-bold flex items-center justify-center gap-2 bg-rose-100 text-rose-700 border border-rose-200";
+                fBtn.innerHTML = '<i data-lucide="check-circle-2" class="w-5 h-5"></i> しっかりを完了済み';
+            } else {
+                fBtn.className = "w-full mt-4 py-4 rounded-2xl font-bold flex items-center justify-center gap-2 bg-rose-500 text-white shadow-rose-200";
+                fBtn.innerHTML = '<i data-lucide="flame" class="w-5 h-5"></i> しっかり30分を完了する';
+            }
+            lucide.createIcons();
+        }
+
+        function showCelebration(type) {
+            const overlay = document.getElementById('celebration-overlay');
+            const iconWrap = document.getElementById('celebration-icon');
+            iconWrap.innerHTML = type === 'full' 
+                ? '<i data-lucide="flame" class="w-16 h-16 text-rose-500 fill-rose-500"></i>'
+                : '<i data-lucide="leaf" class="w-16 h-16 text-emerald-500 fill-emerald-500"></i>';
+            overlay.classList.remove('hidden');
+            overlay.classList.add('flex', 'celebration-fade');
+            lucide.createIcons();
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+                overlay.classList.remove('flex', 'celebration-fade');
+            }, 3000);
+        }
+
+        // --- カレンダー描画 ---
+        function changeMonth(diff) {
+            currentMonth.setMonth(currentMonth.getMonth() + diff);
+            renderCalendar();
+        }
+
+        function renderCalendar() {
+            const year = currentMonth.getFullYear();
+            const month = currentMonth.getMonth();
+            document.getElementById('calendar-title').innerText = `${year}年 ${month + 1}月`;
+
+            const firstDay = new Date(year, month, 1).getDay();
+            const lastDate = new Date(year, month + 1, 0).getDate();
+            const grid = document.getElementById('calendar-grid');
+            grid.innerHTML = '';
+
+            ['日','月','火','水','木','金','土'].forEach(d => {
+                grid.innerHTML += `<div class="text-center text-[10px] font-bold text-zinc-300 py-2">${d}</div>`;
+            });
+
+            for (let i = 0; i < firstDay; i++) grid.innerHTML += '<div></div>';
+
+            const todayStr = getTodayStr();
+            for (let d = 1; d <= lastDate; d++) {
+                const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+                const status = history[dateStr];
+                const isToday = dateStr === todayStr;
+                
+                let icon = '';
+                if(status === 'full') icon = '<i data-lucide="flame" class="w-4 h-4 text-rose-500 fill-rose-500"></i>';
+                else if(status === 'basic') icon = '<i data-lucide="leaf" class="w-4 h-4 text-emerald-500 fill-emerald-500"></i>';
+
+                grid.innerHTML += `
+                    <div class="aspect-square p-0.5">
+                        <div class="w-full h-full rounded-xl border flex flex-col items-center justify-center ${isToday ? 'bg-zinc-50 border-zinc-200' : 'bg-white border-zinc-50'}">
+                            <span class="text-[10px] font-bold ${isToday ? 'text-rose-500' : 'text-zinc-400'}">${d}</span>
+                            <div class="h-4 flex items-center justify-center mt-0.5">${icon}</div>
+                        </div>
+                    </div>
+                `;
+            }
+            lucide.createIcons();
+        }
+
+        init();
+    </script>
+</body>
+</html>
